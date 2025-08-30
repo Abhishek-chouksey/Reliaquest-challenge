@@ -18,6 +18,13 @@ dependencies {
     implementation 'io.github.openfeign:feign-jackson:13.2'
     implementation 'io.github.openfeign:feign-slf4j:13.2'
 
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+
+
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 

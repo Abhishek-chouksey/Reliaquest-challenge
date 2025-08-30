@@ -1,2 +1,12 @@
 spring.application.name: employee-api
 server.port: 8111
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: caches
+
+spring:
+  cache:
+    type: caffeine

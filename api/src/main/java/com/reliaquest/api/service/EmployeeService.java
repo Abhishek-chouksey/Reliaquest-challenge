@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -18,10 +20,10 @@ import org.springframework.web.client.HttpClientErrorException;
 @Service
 @RequiredArgsConstructor
 public class EmployeeService {
-    private static final Logger log = LoggerFactory.getLogger(EmployeeService.class);
 
     private final EmployeeClient client;
 
+    @Cacheable(value = "employeesAll")
     public List<Employee> fetchAll() {
         log.debug("Fetching all employees from remote service");
         List<Employee> employees = client.fetchAll();
@@ -29,6 +31,7 @@ public class EmployeeService {
         return employees;
     }
 
+    @Cacheable(value = "employeeById", key = "#id")
     public Employee fetchById(String id) {
         log.debug("Fetching employee by id={}", id);
         try {
@@ -49,6 +52,7 @@ public class EmployeeService {
         }
     }
 
+    @CacheEvict(value = {"employeesAll", "employeeById", "searchByName", "highestSalary", "topTenNamesBySalary"}, allEntries = true)
     public String deleteById(String id) {
         log.debug("Deleting employee by id={}", id);
         Employee employee = fetchById(id);
@@ -61,6 +65,7 @@ public class EmployeeService {
         throw new EmployeeNotFoundException("Employee with id " + id + " not found");
     }
 
+    @Cacheable(value = "searchByName", key = "#fragment")
     public List<Employee> searchByName(String name) {
         log.debug("Searching employees by name name='{}'", name);
         String formattedName = name == null ? "" : name.toLowerCase();
@@ -72,6 +77,7 @@ public class EmployeeService {
         return results;
     }
 
+    @Cacheable(value = "highestSalary")
     public int highestSalary() {
         log.debug("Calculating highest salary among employees");
         int maxSalary = fetchAll().stream()
@@ -84,6 +90,7 @@ public class EmployeeService {
         return maxSalary;
     }
 
+    @Cacheable(value = "topTenNamesBySalary")
     public List<String> topTenNamesBySalary() {
         log.debug("Fetching top 10 employee names by salary");
         List<String> topTen = fetchAll().stream()
@@ -98,6 +105,7 @@ public class EmployeeService {
         return topTen;
     }
 
+    @CacheEvict(value = {"employeesAll", "employeeById", "searchByName", "highestSalary", "topTenNamesBySalary"}, allEntries = true)
     public Employee create(CreateEmployeeInput in) {
         log.debug("Creating new employee with input: {}", in);
         Map<String, Object> body = new HashMap<>();
